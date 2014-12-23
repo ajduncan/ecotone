@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby
 
-ENV['RACK_ENV'] ||= 'development'
+ENV['RACK_ENV'] ||= 'production'
+ENV['WEBSOCKET_PORT'] ||= '8000'
 
 require 'bundler'
 Bundler.require :default, ENV['RACK_ENV'].to_sym
 
-class Ecotone < Sinatra::Base
+Faye::WebSocket.load_adapter('thin')
 
-    helpers Sinatra::Streaming
+class Ecotone < Sinatra::Base
 
     set :root, File.dirname(__FILE__)
     set :public_folder, File.dirname(__FILE__) + '/static'
@@ -19,23 +20,24 @@ class Ecotone < Sinatra::Base
         erb :index
     end
 
-    pstree = lambda do
-        content_type :txt
+    messages = lambda do
+        if Faye::WebSocket.websocket?(request.env)
+            ws = Faye::WebSocket.new(request.env)
 
-        `pstree`
+            ws.on(:message) do |msg|
+                if msg.data == 'pstree'
+                    ws.send(`pstree`)
+                end
+            end
 
-    end
-
-    log_messages = lambda do
-        content_type :txt
-        stream do |out|
-            out << "DERP\n\n"
+            ws.rack_response
+        else
+            status 200
+            body ''
         end
     end
 
-
     get '/', &index
-    get '/pstree', &pstree
-    get '/log/messages', &log_messages
+    get '/messages', &messages
 
 end

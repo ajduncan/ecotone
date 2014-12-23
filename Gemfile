@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 
+gem 'faye-websocket', require: 'faye/websocket'
 gem 'rake'
 gem 'sinatra'
 gem 'sinatra-base'
 gem 'sinatra-contrib'
-gem 'bcat'
 gem 'thin'
 
 group :test, :development do

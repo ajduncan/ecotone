@@ -1,6 +1,6 @@
 # ecotone #
 
-Monitoring api to disparate components written with sinatra and thin.
+Monitoring api of disparate components, written with sinatra, thin, and faye-websocket.
 
 ## Running Locally ##
 
@@ -16,7 +16,9 @@ Monitoring api to disparate components written with sinatra and thin.
 
 * Running
 
-    $ rackup
+    You have to run this in production apparently.  See: https://github.com/ryanb/private_pub/issues/30
+
+    $ RACK_ENV=production rackup
 
     You should then be able to access the application at http://localhost:8000/
 

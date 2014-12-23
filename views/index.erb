@@ -1,1 +1,30 @@
-<p>Main index content</p>
+<input type="text" id="message" name="message" value="msg..." />
+<ul id="messages"></ul>
+
+<script type="text/javascript">
+    var append_msg = function (str) {
+        $('#messages').append($('<li>').text(str));
+    }
+
+    var ws_uri = 'ws://' + location.hostname + ':' + '<%=ENV['WEBSOCKET_PORT']%>' + '/messages'
+    var ws = new WebSocket(ws_uri);
+    ws.onopen = function () {
+        append_msg('ws.onopen');
+    }
+
+    ws.onmessage = function (msg) {
+        append_msg('ws.onmessage: "' + msg.data + '" from server');
+    }
+
+    ws.onclose = function () {
+        append_msg('ws.onclose');
+    }
+
+    var input = $('#message')
+    input.change(function () {
+        var msg = input.val();
+        ws.send(msg);
+        append_msg('Sending: "' + msg + '" to server...');
+        input.val("");
+    });
+</script>
