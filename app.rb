@@ -16,6 +16,11 @@ class Ecotone < Sinatra::Base
 
     enable :sessions
 
+    def initialize(app = nil, params = {})
+      super(app)
+      @clients = []
+    end
+
     index = lambda do
         erb :index
     end
@@ -24,10 +29,31 @@ class Ecotone < Sinatra::Base
         if Faye::WebSocket.websocket?(request.env)
             ws = Faye::WebSocket.new(request.env)
 
+            ws.on(:open) do |event|
+              puts 'WS open triggered'
+              @clients << ws
+            end
+
             ws.on(:message) do |msg|
                 if msg.data == 'pstree'
                     ws.send(`pstree`)
                 end
+
+                # look into eventmachine-tail
+                if msg.data == 'log'
+                    @clock = Thread.new { loop { ws.send(Time.now.to_s); sleep(1) } }
+                end
+
+                @clients.each do |client|
+                  puts 'Sending message: ' + msg.data
+                  client.send(msg.data)
+                end
+            end
+
+            ws.on(:close) do |event|
+              puts 'WS close triggered'
+              @clients.delete(ws)
+              ws = nil
             end
 
             ws.rack_response
